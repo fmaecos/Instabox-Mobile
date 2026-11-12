@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">InstaBox</string>
+    <string name="title_activity_main">InstaBox</string>
+    <string name="package_name">sh.instabox.mobile</string>
+    <string name="custom_url_scheme">sh.instabox.mobile</string>
+</resources>
