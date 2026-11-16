@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import legacy from '@vitejs/plugin-legacy';
 
 function customLlmProxyMiddleware(req: IncomingMessage, res: ServerResponse) {
   const targetUrl = req.headers['x-llm-target-url'];
@@ -69,10 +70,35 @@ function customLlmProxyMiddleware(req: IncomingMessage, res: ServerResponse) {
   });
 }
 
+
+// @novnc/novnc nutzt ein Top-level await. Das laesst sich nicht nach ES5
+// uebersetzen und wuerde die App auf aelteren Android-WebViews blockieren.
+// Der WebCodecs-Test wird deshalb verzoegert ausgefuehrt.
+function novncNoTopLevelAwait() {
+  const needle = 'supportsWebCodecsH264Decode = await _checkWebCodecsH264DecodeSupport();';
+  const replacement =
+    'void _checkWebCodecsH264DecodeSupport().then((v) => { supportsWebCodecsH264Decode = v; }).catch(() => {});';
+  return {
+    name: 'novnc-no-top-level-await',
+    enforce: 'pre' as const,
+    transform(code: string, id: string) {
+      if (!id.includes('@novnc/novnc') || !code.includes(needle)) return null;
+      return { code: code.replace(needle, replacement), map: null };
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    novncNoTopLevelAwait(),
     react(),
     tailwindcss(),
+    // Alte Android-WebViews (z. B. Android 7) verstehen keine ES-Module:
+    // plugin-legacy liefert zusaetzlich einen ES5-Build mit Polyfills.
+    legacy({
+      targets: ['chrome >= 51', 'android >= 7'],
+      modernPolyfills: true,
+    }),
     {
       name: 'custom-openai-compatible-proxy',
       configureServer(server) {
@@ -84,7 +110,7 @@ export default defineConfig({
     },
   ],
   esbuild: {
-    target: 'es2022',
+    target: 'es2015',
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -142,7 +168,7 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2022',
+    target: 'es2015',
     outDir: 'dist',
     sourcemap: false,
   },
