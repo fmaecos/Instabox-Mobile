@@ -25,8 +25,8 @@ export interface DesktopPrefs {
   preferredResolution: string;
 }
 
-export const APP_VERSION = '1.5.0';
-export const APP_BUILD = 6;
+export const APP_VERSION = '1.5.1';
+export const APP_BUILD = 7;
 
 export const OFFICIAL_GDRIVE_MANIFEST_FILE_ID = '1s4sHkWFmGwcptkrgYI0Cdt2x2X_GsZx4';
 export const OFFICIAL_GDRIVE_MANIFEST_URL = `https://drive.usercontent.google.com/download?id=${OFFICIAL_GDRIVE_MANIFEST_FILE_ID}&export=download&confirm=t`;
@@ -229,4 +229,3 @@ export async function loadAppUpdateSettings(): Promise<AppUpdateSettings> {
 export async function saveAppUpdateSettings(settings: AppUpdateSettings): Promise<void> {
   await setItem(KEYS.APP_UPDATE_SETTINGS, JSON.stringify(settings));
 }
-
